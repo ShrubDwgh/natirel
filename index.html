@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natirel</title>
+<link href="https://fonts.googleapis.com/css2?family=Garamond:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #faf9f7;
+    color: #1a1a1a;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Search component (from user) ── */
+  .group {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+  }
+
+  .icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    fill: #aaa;
+    transition: fill 0.2s;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  .group:focus-within .icon {
+    fill: #1a1a1a;
+  }
+
+  .input {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #1a1a1a;
+    background: #fff;
+    border: 1.5px solid #e0ddd8;
+    border-radius: 100px;
+    padding: 13px 20px 13px 44px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .input::placeholder { color: #bbb; }
+  .input::-webkit-search-cancel-button { display: none; }
+
+  .input:focus {
+    border-color: #1a1a1a;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  /* ── Layout ── */
+  .hero {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 20px 36px;
+    transition: padding 0.4s ease;
+  }
+
+  .hero.compact {
+    padding: 32px 20px 24px;
+  }
+
+  .brand {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+    margin-bottom: 28px;
+    transition: all 0.4s ease;
+  }
+
+  .hero.compact .brand {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .search-wrap {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* Chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    transition: opacity 0.3s;
+  }
+
+  .chips.hidden {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .chip {
+    background: #fff;
+    border: 1px solid #e0ddd8;
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .chip:hover {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #fff;
+  }
+
+  /* ── Results ── */
+  #results {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    flex: 1;
+  }
+
+  .results-meta {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .results-query {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+
+  /* Summary */
+  .summary-card {
+    background: #fff;
+    border: 1px solid #e8e5e0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    border-left: 3px solid #1a1a1a;
+  }
+
+  .summary-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #aaa;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .summary-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #444;
+    font-weight: 300;
+  }
+
+  /* Cards */
+  .results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid #e8e5e0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #e8e5e0;
+  }
+
+  .result-card {
+    background: #fff;
+    padding: 18px 22px;
+    animation: fadeUp 0.35s ease both;
+    cursor: default;
+    transition: background 0.15s;
+  }
+
+  .result-card:hover { background: #fdfcfb; }
+
+  .result-source {
+    font-size: 11px;
+    color: #bbb;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .result-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 7px;
+    line-height: 1.4;
+  }
+
+  .result-snippet {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #777;
+    font-weight: 300;
+  }
+
+  .date-tag {
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  /* Loading */
+  .state-msg {
+    text-align: center;
+    padding: 60px 20px;
+    color: #bbb;
+    font-size: 14px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .loading-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+    animation: blink 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  .error-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: #c0392b;
+    font-size: 13px;
+    font-weight: 300;
+  }
+
+  /* ── Ads Section ── */
+  .ads-section {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 20px 32px;
+  }
+
+  .ads-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ccc;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .ads-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ad-card {
+    background: #fff;
+    border: 1px solid #e8e5e0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: box-shadow 0.18s, transform 0.18s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+  }
+
+  .ad-card:hover {
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+    transform: translateY(-1px);
+  }
+
+  .ad-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #bbb;
+    background: #f5f4f2;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 500;
+  }
+
+  .ad-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    margin-bottom: 10px;
+  }
+
+  .ad-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    padding-right: 28px;
+  }
+
+  .ad-desc {
+    font-size: 11.5px;
+    color: #999;
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  .ad-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+    letter-spacing: 0.03em;
+  }
+
+  .ad-cta svg {
+    width: 10px;
+    height: 10px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Banner Ad */
+  .ad-banner {
+    background: #fff;
+    border: 1px solid #e8e5e0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: box-shadow 0.18s, transform 0.18s;
+    margin-bottom: 10px;
+    position: relative;
+    text-decoration: none;
+  }
+
+  .ad-banner:hover {
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+    transform: translateY(-1px);
+  }
+
+  .ad-banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .ad-banner-body { flex: 1; min-width: 0; }
+
+  .ad-banner-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 3px;
+  }
+
+  .ad-banner-desc {
+    font-size: 12px;
+    color: #999;
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ad-banner-btn {
+    flex-shrink: 0;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 100px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .ads-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 0 0 20px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: #ccc;
+    letter-spacing: 0.08em;
+    border-top: 1px solid #eee;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.9); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .result-card:nth-child(1) { animation-delay: 0.04s; }
+  .result-card:nth-child(2) { animation-delay: 0.08s; }
+  .result-card:nth-child(3) { animation-delay: 0.12s; }
+  .result-card:nth-child(4) { animation-delay: 0.16s; }
+  .result-card:nth-child(5) { animation-delay: 0.20s; }
+  .result-card:nth-child(6) { animation-delay: 0.24s; }
+  .result-card:nth-child(7) { animation-delay: 0.28s; }
+</style>
+</head>
+<body>
+
+<div class="hero" id="hero">
+  <div class="brand">natirel</div>
+  <div class="search-wrap">
+    <div class="group">
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+        <g><path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path></g>
+      </svg>
+      <input placeholder="Search" type="search" class="input" id="searchInput" />
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <span class="chip" onclick="quickSearch('berita teknologi hari ini')">Teknologi</span>
+    <span class="chip" onclick="quickSearch('AI terbaru 2025')">Artificial Intelligence</span>
+    <span class="chip" onclick="quickSearch('ekonomi global terkini')">Ekonomi</span>
+    <span class="chip" onclick="quickSearch('kesehatan tips terbaru')">Kesehatan</span>
+    <span class="chip" onclick="quickSearch('sains penemuan terbaru')">Sains</span>
+    <span class="chip" onclick="quickSearch('olahraga berita terkini')">Olahraga</span>
+  </div>
+</div>
+
+<div id="results"></div>
+
+<div id="adsSection" class="ads-section" style="display:none">
+  <hr class="ads-divider">
+  <div class="ads-label">Sponsor</div>
+
+  <!-- Banner Ad -->
+  <a href="#" class="ad-banner" onclick="return false">
+    <div class="ad-banner-icon" style="background:#f0f7ff">📦</div>
+    <div class="ad-banner-body">
+      <div class="ad-banner-title">Tokopedia — Belanja Lebih Hemat</div>
+      <div class="ad-banner-desc">Jutaan produk dengan harga terbaik, gratis ongkir setiap hari</div>
+    </div>
+    <div class="ad-banner-btn">Buka</div>
+    <span class="ad-badge">Iklan</span>
+  </a>
+
+  <!-- 2-col grid ads -->
+  <div class="ads-grid">
+    <a href="#" class="ad-card" onclick="return false">
+      <span class="ad-badge">Iklan</span>
+      <div class="ad-icon" style="background:#fff3f0">🚀</div>
+      <div class="ad-title">Niaga Hoster — Domain & Hosting</div>
+      <div class="ad-desc">Mulai website impianmu dari Rp 9.000/bln</div>
+      <span class="ad-cta">Pelajari lebih <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a href="#" class="ad-card" onclick="return false">
+      <span class="ad-badge">Iklan</span>
+      <div class="ad-icon" style="background:#f0fff4">💰</div>
+      <div class="ad-title">Bibit — Investasi Reksa Dana</div>
+      <div class="ad-desc">Mulai investasi mulai dari Rp 10.000 saja</div>
+      <span class="ad-cta">Mulai sekarang <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a href="#" class="ad-card" onclick="return false">
+      <span class="ad-badge">Iklan</span>
+      <div class="ad-icon" style="background:#fdf4ff">🎓</div>
+      <div class="ad-title">Ruangguru — Belajar Online</div>
+      <div class="ad-desc">Ratusan kelas dari tutor terbaik Indonesia</div>
+      <span class="ad-cta">Coba gratis <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a href="#" class="ad-card" onclick="return false">
+      <span class="ad-badge">Iklan</span>
+      <div class="ad-icon" style="background:#fffbf0">🏥</div>
+      <div class="ad-title">Halodoc — Konsultasi Dokter</div>
+      <div class="ad-desc">Chat dokter kapan saja, 24 jam non-stop</div>
+      <span class="ad-cta">Konsultasi <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+  </div>
+</div>
+
+<footer>natirel &mdash; data real-time</footer>
+
+<script>
+  const input = document.getElementById('searchInput');
+  const resultsDiv = document.getElementById('results');
+  const hero = document.getElementById('hero');
+  const chips = document.getElementById('chips');
+
+  let searchTimer;
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      clearTimeout(searchTimer);
+      doSearch();
+    }
+  });
+
+  input.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    if (input.value.trim().length > 2) {
+      searchTimer = setTimeout(doSearch, 800);
+    }
+  });
+
+  function quickSearch(q) {
+    input.value = q;
+    doSearch();
+  }
+
+  async function doSearch() {
+    const query = input.value.trim();
+    if (!query) return;
+
+    hero.classList.add('compact');
+    chips.classList.add('hidden');
+
+    resultsDiv.innerHTML = `
+      <div style="max-width:640px;margin:0 auto;padding:40px 20px">
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="state-msg" style="padding:0">Mencari "${escHtml(query)}"...</div>
+      </div>
+    `;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are a real-time search engine. Search the web and respond ONLY with raw JSON (no markdown, no backticks) in this exact format:
+{
+  "summary": "Ringkasan singkat 2 kalimat dalam Bahasa Indonesia",
+  "total": number,
+  "results": [
+    {
+      "title": "Judul hasil",
+      "source": "nama domain/sumber",
+      "snippet": "Deskripsi 2 kalimat dalam Bahasa Indonesia",
+      "date": "tanggal atau periode waktu"
+    }
+  ]
+}
+Berikan 6-8 hasil. Urutkan dari konten terlama yang relevan ke terbaru. Semua teks dalam Bahasa Indonesia. Hanya JSON mentah, tanpa apapun selain JSON.`,
+          tools: [{ "type": "web_search_20250305", "name": "web_search" }],
+          messages: [{ role: "user", content: `Cari: ${query}` }]
+        })
+      });
+
+      const data = await response.json();
+      let rawText = '';
+      if (data.content) {
+        for (const block of data.content) {
+          if (block.type === 'text') rawText += block.text;
+        }
+      }
+
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      let parsed;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+        else throw new Error('Format tidak dikenali');
+      }
+
+      renderResults(query, parsed);
+
+    } catch (err) {
+      resultsDiv.innerHTML = `<div class="error-msg">Gagal memuat hasil. Coba lagi.<br><small>${err.message}</small></div>`;
+    }
+  }
+
+  function renderResults(query, data) {
+    document.getElementById('adsSection').style.display = 'block';
+    const cards = (data.results || []).map(r => `
+      <div class="result-card">
+        <div class="result-source">
+          <span>${escHtml(r.source || '')}</span>
+          <span class="date-tag">${escHtml(r.date || '')}</span>
+        </div>
+        <div class="result-title">${escHtml(r.title)}</div>
+        <div class="result-snippet">${escHtml(r.snippet)}</div>
+      </div>
+    `).join('');
+
+    resultsDiv.innerHTML = `
+      <div style="max-width:640px;margin:0 auto;padding:0 20px 80px">
+        <div class="results-meta">
+          <span class="results-query">${escHtml(query)}</span>
+          <span>${data.total || data.results?.length || 0} hasil</span>
+        </div>
+        ${data.summary ? `
+          <div class="summary-card">
+            <div class="summary-label">Ringkasan</div>
+            <div class="summary-text">${escHtml(data.summary)}</div>
+          </div>
+        ` : ''}
+        <div class="results-grid">${cards}</div>
+      </div>
+    `;
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
